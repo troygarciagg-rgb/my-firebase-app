@@ -19,7 +19,7 @@ export default function PayPalCheckoutButton({
   onApprove,
   onError
 }) {
-  const clientId = process.env.REACT_APP_PAYPAL_CLIENT_ID || import.meta?.env?.VITE_PAYPAL_CLIENT_ID;
+  const clientId = process.env.REACT_APP_PAYPAL_CLIENT_ID;
 
   const paypalOptions = useMemo(() => ({
     'client-id': clientId || '',
