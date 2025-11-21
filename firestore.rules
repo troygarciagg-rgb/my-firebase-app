@@ -1,0 +1,240 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isEmailVerified() {
+      return isAuthenticated() && request.auth.token.email_verified == true;
+    }
+    
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+    
+    function getUserRole() {
+      return request.auth != null
+        ? (
+            get(/databases/$(database)/documents/users/$(request.auth.uid)) != null
+              ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+              : null
+          )
+        : null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() == 'admin';
+    }
+    
+    function isHost() {
+      return isAuthenticated() && isEmailVerified() && getUserRole() == 'host';
+    }
+    
+    function isGuest() {
+      return (isAuthenticated() && isEmailVerified() && getUserRole() == 'guest') ||
+             (isAuthenticated() && getUserRole() == 'guest');
+    }
+    
+    function isPublishedStatus(status) {
+      return status == null ||
+             status == '' ||
+             status == 'published' ||
+             status == 'Published' ||
+             status == 'PUBLISHED' ||
+             status == 'active' ||
+             status == 'Active' ||
+             status == 'ACTIVE' ||
+             status == 'approved' ||
+             status == 'Approved' ||
+             status == 'APPROVED' ||
+             status == 'public' ||
+             status == 'Public' ||
+             status == 'PUBLIC';
+    }
+    
+    function isPublicListing(resource) {
+      return resource != null && (
+        isPublishedStatus(resource.data.status) ||
+        (resource.data.isPublished == true) ||
+        (resource.data.visibility == 'public') ||
+        (resource.data.status == true) // legacy boolean flag
+      );
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow read: if isAdmin();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isOwner(userId);
+      allow delete: if isAdmin();
+    }
+    
+    match /properties/{propertyId} {
+      allow read: if true;
+      
+      allow create: if isHost() &&
+        request.resource.data.hostId == request.auth.uid &&
+        request.resource.data.ownerId == request.auth.uid;
+      
+      allow update, delete: if resource != null &&
+        (
+          (isHost() && resource.data.hostId == request.auth.uid) ||
+          (isAuthenticated() && resource.data.ownerId == request.auth.uid)
+        );
+      allow update, delete: if isAdmin();
+    }
+    
+    // Listings collection (kept for backward compatibility)
+    match /listings/{listingId} {
+      allow read: if resource == null;
+      allow read: if resource != null && isPublishedStatus(resource.data.status);
+      allow read: if resource != null &&
+                  isAuthenticated() &&
+                  isEmailVerified() &&
+                  resource.data.hostId == request.auth.uid;
+      allow read: if isAdmin();
+      
+      allow create: if isHost() && request.resource.data.hostId == request.auth.uid;
+      allow update: if resource != null && isHost() && resource.data.hostId == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if resource != null && isHost() && resource.data.hostId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+    
+    // Bookings collection
+    match /bookings/{bookingId} {
+      // Guests can read their own bookings, hosts can read bookings for their listings, admins can read all
+      allow read: if resource != null &&
+                   isAuthenticated() &&
+                   isEmailVerified() &&
+                   resource.data.guestId == request.auth.uid;
+      allow read: if resource != null &&
+                   isAuthenticated() &&
+                   isEmailVerified() &&
+                   isHost() &&
+                   resource.data.hostId == request.auth.uid;
+      // Guests must be able to inspect booking docs (dates) to determine availability before payment.
+      allow read: if resource != null && isAuthenticated();
+      allow read: if isAdmin();
+      
+      allow create: if isGuest() && request.resource.data.guestId == request.auth.uid;
+      
+      allow update: if resource != null && isHost() && resource.data.hostId == request.auth.uid;
+      allow update: if resource != null && isGuest() && resource.data.guestId == request.auth.uid;
+      allow update: if isAdmin();
+      
+      allow delete: if isAdmin();
+    }
+    
+    // Reviews collection
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isGuest() && request.resource.data.guestId == request.auth.uid;
+      allow update: if resource != null && isGuest() && resource.data.guestId == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if resource != null && isGuest() && resource.data.guestId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+    
+    // Admin reports collection (if needed)
+    match /adminReports/{reportId} {
+      // Only admins can access reports
+      allow read, write: if isAdmin();
+    }
+    
+    // Payments collection (if needed)
+    match /payments/{paymentId} {
+      allow read: if resource != null && isOwner(resource.data.userId);
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+    
+    // Host messages collection (used for both guest-host and host-guest messaging)
+    match /hostMessages/{messageId} {
+      // Any authenticated user can create a message document
+      allow create: if isAuthenticated();
+      
+      // Any authenticated user can read messages where they are a participant.
+      // We treat senderId/receiverId as the primary fields, but also allow
+      // hostId/guestId for legacy messages that may not have senderId/receiverId.
+      allow read: if resource != null &&
+                   isAuthenticated() &&
+                   (
+                     resource.data.senderId == request.auth.uid ||
+                     resource.data.receiverId == request.auth.uid ||
+                     resource.data.hostId == request.auth.uid ||
+                     resource.data.guestId == request.auth.uid
+                   );
+      
+      // Any participant can delete messages they sent (unsend)
+      allow delete: if resource != null &&
+                     isAuthenticated() &&
+                     resource.data.senderId == request.auth.uid;
+      
+      // Admins can read, update, and delete any message
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /coupons/{couponId} {
+      allow create: if isGuest() && request.resource.data.guestId == request.auth.uid;
+      allow read: if resource != null &&
+                   isAuthenticated() &&
+                   resource.data.guestId == request.auth.uid;
+      allow update: if resource != null &&
+                     isAuthenticated() &&
+                     resource.data.guestId == request.auth.uid;
+    }
+
+    match /wishlists/{wishlistId} {
+      allow create: if isAuthenticated() &&
+                     request.resource.data.guestId == request.auth.uid;
+      allow read: if resource != null &&
+                   isAuthenticated() &&
+                   resource.data.guestId == request.auth.uid;
+      allow delete: if resource != null &&
+                     isAuthenticated() &&
+                     resource.data.guestId == request.auth.uid;
+    }
+
+    match /favorites/{favoriteId} {
+      // Allow any authenticated user to create favorites
+      // Simplified rule - just check authentication and that guestId matches auth uid
+      allow create: if request.auth != null &&
+                     request.resource.data.guestId == request.auth.uid;
+      
+      // Allow users to read their own favorites
+      allow read: if request.auth != null &&
+                   (resource == null || resource.data.guestId == request.auth.uid);
+      
+      // Allow users to delete their own favorites
+      allow delete: if request.auth != null &&
+                     (resource == null || resource.data.guestId == request.auth.uid);
+      
+      // Admins can do everything
+      allow read, write: if isAdmin();
+    }
+
+    // Transactions collection (for payouts and financial records)
+    match /transactions/{transactionId} {
+      // Hosts can read their own transactions
+      allow read: if resource != null &&
+                   isAuthenticated() &&
+                   resource.data.hostId == request.auth.uid;
+      
+      // Admins can read all transactions
+      allow read: if isAdmin();
+      
+      // Only backend/server can create transactions (via Admin SDK)
+      // Admins can also create/update for manual adjustments
+      allow create, update: if isAdmin();
+      
+      // Only admins can delete transactions
+      allow delete: if isAdmin();
+    }
+  }
+}
+
