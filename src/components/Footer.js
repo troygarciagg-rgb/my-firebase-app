@@ -43,19 +43,19 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4">Support</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="text-gray-300 hover:text-teal-400 transition-colors">
+                <button type="button" className="text-gray-300 hover:text-teal-400 transition-colors cursor-pointer bg-transparent border-none p-0 text-left">
                   Help Center
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-teal-400 transition-colors">
+                <button type="button" className="text-gray-300 hover:text-teal-400 transition-colors cursor-pointer bg-transparent border-none p-0 text-left">
                   Contact Us
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-teal-400 transition-colors">
+                <button type="button" className="text-gray-300 hover:text-teal-400 transition-colors cursor-pointer bg-transparent border-none p-0 text-left">
                   Privacy Policy
-                </a>
+                </button>
               </li>
             </ul>
           </div>
