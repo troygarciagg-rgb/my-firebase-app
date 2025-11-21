@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { getDashboardStats, getListings, getBookings, getAllUsers } from '../../utils/firebaseFunctions';
+import { getDashboardStats, getListings, getBookings } from '../../utils/firebaseFunctions';
 import Navbar from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
 
@@ -20,15 +20,13 @@ export default function Reports() {
   const loadReports = async () => {
     try {
       const dashboardStats = await getDashboardStats();
-      const [listingDocs, bookingDocs, userDocs] = await Promise.all([
+      const [listingDocs, bookingDocs] = await Promise.all([
         getListings(),
-        getBookings(),
-        getAllUsers()
+        getBookings()
       ]);
 
       setListings(listingDocs);
       setBookings(bookingDocs);
-      setUsers(userDocs);
 
       const categoryStats = {};
       listingDocs.forEach((listing) => {

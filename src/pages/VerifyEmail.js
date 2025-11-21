@@ -167,7 +167,7 @@ export default function VerifyEmail() {
             <div className="space-y-3">
               <button
                 onClick={handleResend}
-                disabled={resending || loading}
+                disabled={resending}
                 className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transform transition-all hover:scale-105"
               >
                 {resending ? (
