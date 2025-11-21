@@ -12,7 +12,6 @@ export default function Reports() {
   const [loading, setLoading] = useState(true);
   const [listings, setListings] = useState([]);
   const [bookings, setBookings] = useState([]);
-  const [users, setUsers] = useState([]);
 
   useEffect(() => {
     loadReports();

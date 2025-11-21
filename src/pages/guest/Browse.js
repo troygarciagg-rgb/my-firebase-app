@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getListings, getFavorites, addFavorite, removeFavorite } from '../../utils/firebaseFunctions';
 import Navbar from '../../components/Navbar';
@@ -25,6 +25,7 @@ export default function Browse() {
 
   useEffect(() => {
     loadListings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.category]);
 
   useEffect(() => {

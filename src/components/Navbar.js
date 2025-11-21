@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUser } from '../utils/firebaseFunctions';
 import LogoutModal from './LogoutModal';
@@ -7,7 +7,6 @@ import Logo from './Logo';
 
 export default function Navbar() {
   const { currentUser, userRole } = useAuth();
-  const navigate = useNavigate();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState(null);
 

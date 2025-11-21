@@ -27,7 +27,6 @@ const StatCard = ({ label, value, accent = 'blue' }) => {
 };
 
 export default function AdminDashboard() {
-  const { currentUser } = useAuth();
   const [stats, setStats] = useState(null);
   const [listings, setListings] = useState([]);
   const [users, setUsers] = useState([]);

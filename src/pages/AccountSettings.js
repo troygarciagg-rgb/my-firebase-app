@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getUser, updateUserProfile, uploadProfileImage } from '../utils/firebaseFunctions';
 import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
-import { auth } from '../config/firebase';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 

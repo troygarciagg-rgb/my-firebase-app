@@ -10,7 +10,6 @@ export default function VerifyEmail() {
   const location = useLocation();
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [userEmail, setUserEmail] = useState('');
 
