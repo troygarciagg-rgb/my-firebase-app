@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useAuth } from '../../context/AuthContext';
 import { getDashboardStats, getListings, getAllUsers, getAllTransactions } from '../../utils/firebaseFunctions';
 import Navbar from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';

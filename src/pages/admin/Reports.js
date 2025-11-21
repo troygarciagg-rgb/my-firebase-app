@@ -12,7 +12,6 @@ export default function Reports() {
   const [loading, setLoading] = useState(true);
   const [listings, setListings] = useState([]);
   const [bookings, setBookings] = useState([]);
-  const [users, setUsers] = useState([]);
 
   useEffect(() => {
     loadReports();
@@ -29,7 +28,6 @@ export default function Reports() {
 
       setListings(listingDocs);
       setBookings(bookingDocs);
-      setUsers(userDocs);
 
       const categoryStats = {};
       listingDocs.forEach((listing) => {

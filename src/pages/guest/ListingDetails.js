@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -9,7 +9,6 @@ import {
   getFavorites,
   createBooking,
   checkAvailability,
-  isListingPublic,
   getBookings,
   sendHostMessage,
   processBookingPayment,
@@ -420,6 +419,7 @@ export default function ListingDetails() {
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, currentUser, userRole]);
 
   // Close calendar when clicking outside
@@ -1101,7 +1101,7 @@ export default function ListingDetails() {
                           <div key={index} className={`${index === 0 ? 'md:col-span-2' : ''} relative group`}>
                             <img
                               src={img}
-                              alt={`${listing.title} - Image ${index + 1}`}
+                              alt={`${listing.title} ${index + 1}`}
                               className="w-full h-64 md:h-96 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                               onClick={() => window.open(img, '_blank')}
                             />
